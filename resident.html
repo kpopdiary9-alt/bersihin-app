@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="BersihIn Resident App — Track waste pickups, manage payments, and stay connected with your collector.">
+  <title>BersihIn — Resident App</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/resident.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+</head>
+<body class="resident-page">
+
+  <a href="index.html" class="back-to-home" id="backHomeLink">← Back to Home</a>
+
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <!-- Status Bar -->
+      <div class="phone-status-bar" id="statusBar">
+        <span class="time" id="statusTime">9:41</span>
+        <div class="icons">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </div>
+      </div>
+
+      <!-- App Content -->
+      <div class="app-content">
+
+        <!-- ===== HOME SCREEN ===== -->
+        <div class="screen active" id="screenHome">
+          <div class="app-scroll">
+            <!-- Header -->
+            <div class="app-header">
+              <div class="header-row">
+                <div>
+                  <div class="greeting">Good morning,</div>
+                  <div class="greeting-name">Teuku Muhammad Farhan 👋</div>
+                </div>
+                <div class="header-actions">
+                  <button class="header-icon-btn" onclick="switchScreen('screenNotif')" id="homeNotifBtn">
+                    🔔
+                    <span class="notif-dot"></span>
+                  </button>
+                  <button class="header-icon-btn" onclick="switchScreen('screenProfile')" id="homeProfileBtn">
+                    👤
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pickup Status Card -->
+            <div class="pickup-status-card animate-fade-in-up">
+              <div class="status-header">
+                <div>
+                  <div class="status-label">Today's Pickup</div>
+                  <div class="status-time">08:30 AM</div>
+                  <div class="status-subtext">Estimated arrival time</div>
+                </div>
+                <div class="badge badge-warning" id="pickupStatusBadge">
+                  <span class="status-dot busy pulse"></span> En Route
+                </div>
+              </div>
+              <div class="status-progress">
+                <div class="progress-labels">
+                  <span class="active">Scheduled</span>
+                  <span class="active">En Route</span>
+                  <span>Arrived</span>
+                  <span>Completed</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" id="pickupProgress" style="width: 50%;"></div>
+                </div>
+              </div>
+              <div class="collector-info">
+                <div class="collector-avatar">MR</div>
+                <div class="collector-detail">
+                  <div class="collector-name">Muhammad Rizki</div>
+                  <div class="collector-vehicle">Motor Roda Tiga • B 1234 XY</div>
+                </div>
+                <button class="call-btn" id="callCollectorBtn">📞</button>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions-title">Quick Actions</div>
+            <div class="quick-actions-row">
+              <div class="quick-action-item" onclick="switchScreen('screenTracking')" id="qaTrackBtn">
+                <div class="qa-icon green">📍</div>
+                <span>Track</span>
+              </div>
+              <div class="quick-action-item" onclick="switchScreen('screenPayment')" id="qaPayBtn">
+                <div class="qa-icon blue">💳</div>
+                <span>Payment</span>
+              </div>
+              <div class="quick-action-item" id="qaScheduleBtn">
+                <div class="qa-icon amber">📅</div>
+                <span>Schedule</span>
+              </div>
+              <div class="quick-action-item" id="qaReportBtn">
+                <div class="qa-icon red">📋</div>
+                <span>Report</span>
+              </div>
+            </div>
+
+            <!-- This Week's Schedule -->
+            <div class="schedule-section">
+              <div class="schedule-title-row">
+                <h3>This Week</h3>
+                <a href="#">See All</a>
+              </div>
+
+              <div class="schedule-card" id="schedMon">
+                <div class="schedule-day today">
+                  <div class="day-name">Thu</div>
+                  <div class="day-num">10</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="sched-time">08:30 AM — General Waste</div>
+                  <div class="sched-type">🟢 Collector is on the way</div>
+                </div>
+                <div class="schedule-status in-progress">En Route</div>
+              </div>
+
+              <div class="schedule-card" id="schedTue">
+                <div class="schedule-day">
+                  <div class="day-name">Sat</div>
+                  <div class="day-num">12</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="sched-time">08:00 AM — Recyclables</div>
+                  <div class="sched-type">♻️ Plastic, Paper, Glass</div>
+                </div>
+                <div class="schedule-status upcoming">Upcoming</div>
+              </div>
+
+              <div class="schedule-card" id="schedWed">
+                <div class="schedule-day">
+                  <div class="day-name">Tue</div>
+                  <div class="day-num">15</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="sched-time">08:30 AM — General Waste</div>
+                  <div class="sched-type">🗑️ Regular pickup</div>
+                </div>
+                <div class="schedule-status upcoming">Upcoming</div>
+              </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="tips-card">
+              <div class="tip-icon">💡</div>
+              <div>
+                <div class="tip-title">Eco Tip of the Day</div>
+                <div class="tip-text">Separate your organic waste from recyclables to help reduce landfill impact by up to 30%!</div>
+              </div>
+            </div>
+
+            <div style="height: 30px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== TRACKING SCREEN ===== -->
+        <div class="screen" id="screenTracking">
+          <div class="app-scroll" style="padding-bottom: 90px;">
+            <div class="app-header-white">
+              <div class="header-row">
+                <div>
+                  <div style="font-size: 13px; color: var(--neutral-400); font-weight: 500;">Live Tracking</div>
+                  <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--neutral-900); margin-top: 1px;">Your Collector</div>
+                </div>
+                <div class="badge badge-success">
+                  <span class="status-dot online pulse"></span> Live
+                </div>
+              </div>
+            </div>
+
+            <div class="map-container">
+              <div id="residentMap" style="width:100%; height:100%;"></div>
+            </div>
+
+            <div class="tracking-info-card">
+              <div class="tracking-eta">
+                <div class="eta-circle">
+                  <span class="eta-value" id="etaValue">5</span>
+                  <span class="eta-unit">min</span>
+                </div>
+                <div class="eta-text">
+                  <div class="eta-label">Muhammad Rizki is approaching</div>
+                  <div class="eta-detail">200m away • Jl. Anggrek Blok C</div>
+                </div>
+              </div>
+
+              <div class="tracking-stops">
+                <div class="stop-item">
+                  <div class="stop-dot completed"></div>
+                  <div class="stop-text">Jl. Mawar No. 3 — Completed</div>
+                </div>
+                <div class="stop-item">
+                  <div class="stop-dot completed"></div>
+                  <div class="stop-text">Jl. Mawar No. 5 — Completed</div>
+                </div>
+                <div class="stop-item">
+                  <div class="stop-dot current"></div>
+                  <div class="stop-text current">Jl. Anggrek No. 12 — Current Stop</div>
+                </div>
+                <div class="stop-item">
+                  <div class="stop-dot pending"></div>
+                  <div class="stop-text">Jl. Anggrek No. 14 — Your House ⭐</div>
+                </div>
+                <div class="stop-item">
+                  <div class="stop-dot pending"></div>
+                  <div class="stop-text">Jl. Anggrek No. 16</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="height: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== PAYMENT SCREEN ===== -->
+        <div class="screen" id="screenPayment">
+          <div class="app-scroll">
+            <div class="app-header-white">
+              <div class="header-row">
+                <div>
+                  <div style="font-size: 13px; color: var(--neutral-400); font-weight: 500;">Billing & Payments</div>
+                  <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--neutral-900); margin-top: 1px;">Payment</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="balance-card animate-fade-in-up">
+              <div class="balance-label">Monthly Fee</div>
+              <div class="balance-amount">Rp 50.000</div>
+              <div class="balance-due">
+                <div class="balance-due-text">
+                  Next due: <span class="due-date">May 1, 2026</span>
+                </div>
+                <div class="autopay-badge" id="autopayBadge">
+                  ✅ Auto-Pay On
+                </div>
+              </div>
+            </div>
+
+            <!-- Auto-Pay Toggle -->
+            <div style="padding: 0 20px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px; background: white; border-radius: 14px; box-shadow: var(--shadow-xs); border: 1px solid var(--neutral-100);">
+                <div>
+                  <div style="font-size: 14px; font-weight: 600; color: var(--neutral-800);">Auto-Pay</div>
+                  <div style="font-size: 11px; color: var(--neutral-400);">Automatically pay on due date</div>
+                </div>
+                <div class="toggle active" id="autopayToggle" onclick="toggleAutoPay()"></div>
+              </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="payment-methods">
+              <h3>Payment Method</h3>
+              <div class="payment-method-card active" id="pmGopay" onclick="selectPayment(this)">
+                <div class="pm-icon" style="background: #00aed6; border-radius: 10px; color: white; font-weight: 800; font-size: 11px;">Pay</div>
+                <div class="pm-info">
+                  <div class="pm-name">GoPay</div>
+                  <div class="pm-detail">**** 8294</div>
+                </div>
+                <div class="pm-check">✓</div>
+              </div>
+              <div class="payment-method-card" id="pmOvo" onclick="selectPayment(this)">
+                <div class="pm-icon" style="background: #4C3494; border-radius: 10px; color: white; font-weight: 800; font-size: 11px;">OVO</div>
+                <div class="pm-info">
+                  <div class="pm-name">OVO</div>
+                  <div class="pm-detail">**** 5517</div>
+                </div>
+                <div class="pm-check"></div>
+              </div>
+              <div class="payment-method-card" id="pmBank" onclick="selectPayment(this)">
+                <div class="pm-icon" style="background: #003d79; border-radius: 10px; color: white; font-weight: 800; font-size: 10px;">BCA</div>
+                <div class="pm-info">
+                  <div class="pm-name">Bank BCA</div>
+                  <div class="pm-detail">**** 7731</div>
+                </div>
+                <div class="pm-check"></div>
+              </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="transaction-section">
+              <h3>Transaction History</h3>
+
+              <div class="transaction-item">
+                <div class="tx-icon success">✅</div>
+                <div class="tx-info">
+                  <div class="tx-title">April 2026 — Paid</div>
+                  <div class="tx-date">Apr 1, 2026 • GoPay</div>
+                </div>
+                <div class="tx-amount debit">-Rp 50.000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="tx-icon success">✅</div>
+                <div class="tx-info">
+                  <div class="tx-title">March 2026 — Paid</div>
+                  <div class="tx-date">Mar 1, 2026 • GoPay</div>
+                </div>
+                <div class="tx-amount debit">-Rp 50.000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="tx-icon success">✅</div>
+                <div class="tx-info">
+                  <div class="tx-title">February 2026 — Paid</div>
+                  <div class="tx-date">Feb 1, 2026 • GoPay</div>
+                </div>
+                <div class="tx-amount debit">-Rp 50.000</div>
+              </div>
+
+              <div class="transaction-item">
+                <div class="tx-icon success">✅</div>
+                <div class="tx-info">
+                  <div class="tx-title">January 2026 — Paid</div>
+                  <div class="tx-date">Jan 1, 2026 • OVO</div>
+                </div>
+                <div class="tx-amount debit">-Rp 50.000</div>
+              </div>
+            </div>
+
+            <div style="height: 30px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== NOTIFICATIONS SCREEN ===== -->
+        <div class="screen" id="screenNotif">
+          <div class="app-scroll">
+            <div class="app-header-white">
+              <div class="header-row">
+                <div>
+                  <div style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--neutral-900);">Notifications</div>
+                </div>
+                <button style="font-size: 13px; font-weight: 600; color: var(--primary-600); background: none; border: none; cursor: pointer;" id="markAllReadBtn">Mark all read</button>
+              </div>
+            </div>
+
+            <div class="notif-day-label">Today</div>
+
+            <div class="notif-item unread" id="notif1">
+              <div class="notif-icon-wrap green">🚛</div>
+              <div class="notif-content">
+                <div class="notif-title">Collector is on the way!</div>
+                <div class="notif-body">Muhammad Rizki is heading to your area. ETA: 5 minutes.</div>
+              </div>
+              <div class="notif-time">2m ago</div>
+            </div>
+
+            <div class="notif-item unread" id="notif2">
+              <div class="notif-icon-wrap amber">⏰</div>
+              <div class="notif-content">
+                <div class="notif-title">Pickup Reminder</div>
+                <div class="notif-body">Don't forget to prepare your waste. Today's pickup is at 08:30 AM.</div>
+              </div>
+              <div class="notif-time">1h ago</div>
+            </div>
+
+            <div class="notif-item" id="notif3">
+              <div class="notif-icon-wrap blue">💳</div>
+              <div class="notif-content">
+                <div class="notif-title">Payment Successful</div>
+                <div class="notif-body">Your April 2026 fee of Rp 50.000 has been auto-paid via GoPay.</div>
+              </div>
+              <div class="notif-time">Apr 1</div>
+            </div>
+
+            <div class="notif-day-label">This Week</div>
+
+            <div class="notif-item" id="notif4">
+              <div class="notif-icon-wrap green">✅</div>
+              <div class="notif-content">
+                <div class="notif-title">Pickup Completed</div>
+                <div class="notif-body">Your waste has been collected successfully. Thank you!</div>
+              </div>
+              <div class="notif-time">Apr 8</div>
+            </div>
+
+            <div class="notif-item" id="notif5">
+              <div class="notif-icon-wrap amber">📅</div>
+              <div class="notif-content">
+                <div class="notif-title">Schedule Updated</div>
+                <div class="notif-body">Saturday pickup rescheduled from 09:00 to 08:00 AM.</div>
+              </div>
+              <div class="notif-time">Apr 7</div>
+            </div>
+
+            <div class="notif-item" id="notif6">
+              <div class="notif-icon-wrap red">⚠️</div>
+              <div class="notif-content">
+                <div class="notif-title">Missed Pickup</div>
+                <div class="notif-body">Your waste was not collected today. A reschedule has been arranged for tomorrow.</div>
+              </div>
+              <div class="notif-time">Apr 5</div>
+            </div>
+
+            <div class="notif-day-label">Earlier</div>
+
+            <div class="notif-item" id="notif7">
+              <div class="notif-icon-wrap green">🌟</div>
+              <div class="notif-content">
+                <div class="notif-title">Achievement Unlocked!</div>
+                <div class="notif-body">You've completed 24 consecutive pickups. Keep it up!</div>
+              </div>
+              <div class="notif-time">Mar 30</div>
+            </div>
+
+            <div class="notif-item" id="notif8">
+              <div class="notif-icon-wrap blue">📢</div>
+              <div class="notif-content">
+                <div class="notif-title">New Feature: Recyclable Tracking</div>
+                <div class="notif-body">Track your recycling impact in the new Profile tab.</div>
+              </div>
+              <div class="notif-time">Mar 25</div>
+            </div>
+
+            <div style="height: 30px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== PROFILE SCREEN ===== -->
+        <div class="screen" id="screenProfile">
+          <div class="app-scroll">
+            <div class="profile-header">
+              <div class="profile-avatar">SP</div>
+              <div class="profile-name">Teuku Muhammad Farhan</div>
+              <div class="profile-address">Jl. Anggrek No. 14, Blok C • RT 05/RW 02</div>
+            </div>
+
+            <div class="profile-stats-row">
+              <div class="profile-stat-card">
+                <div class="ps-value">24</div>
+                <div class="ps-label">Pickups</div>
+              </div>
+              <div class="profile-stat-card">
+                <div class="ps-value">100%</div>
+                <div class="ps-label">Rate</div>
+              </div>
+              <div class="profile-stat-card">
+                <div class="ps-value">⭐ 4.9</div>
+                <div class="ps-label">Rating</div>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-group-title">Account</div>
+              <div class="settings-item" id="settPersonal">
+                <div class="si-icon green">👤</div>
+                <div class="si-text">Personal Information</div>
+                <div class="si-arrow">›</div>
+              </div>
+              <div class="settings-item" id="settAddress">
+                <div class="si-icon blue">📍</div>
+                <div class="si-text">My Address</div>
+                <div class="si-arrow">›</div>
+              </div>
+              <div class="settings-item" id="settQR">
+                <div class="si-icon amber">📱</div>
+                <div class="si-text">My QR Code</div>
+                <div class="si-arrow">›</div>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-group-title">Preferences</div>
+              <div class="settings-item" id="settNotif">
+                <div class="si-icon blue">🔔</div>
+                <div class="si-text">Notifications</div>
+                <div class="si-arrow">›</div>
+              </div>
+              <div class="settings-item" id="settLang">
+                <div class="si-icon gray">🌐</div>
+                <div class="si-text">Language</div>
+                <div class="si-arrow">›</div>
+              </div>
+              <div class="settings-item" id="settTheme">
+                <div class="si-icon gray">🎨</div>
+                <div class="si-text">Appearance</div>
+                <div class="si-arrow">›</div>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-group-title">Support</div>
+              <div class="settings-item" id="settHelp">
+                <div class="si-icon green">❓</div>
+                <div class="si-text">Help Center</div>
+                <div class="si-arrow">›</div>
+              </div>
+              <div class="settings-item" id="settFeedback">
+                <div class="si-icon amber">💬</div>
+                <div class="si-text">Send Feedback</div>
+                <div class="si-arrow">›</div>
+              </div>
+              <div class="settings-item" id="settLogout">
+                <div class="si-icon red">🚪</div>
+                <div class="si-text" style="color: var(--danger);">Log Out</div>
+                <div class="si-arrow">›</div>
+              </div>
+            </div>
+
+            <div style="text-align: center; padding: 10px 20px 20px;">
+              <div style="font-size: 11px; color: var(--neutral-300);">BersihIn v2.4.1 • © 2026</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end app-content -->
+
+      <!-- Bottom Navigation -->
+      <div class="bottom-nav">
+        <div class="nav-item active" id="navHome" onclick="switchScreen('screenHome')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Home</span>
+        </div>
+        <div class="nav-item" id="navTracking" onclick="switchScreen('screenTracking')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          <span>Tracking</span>
+        </div>
+        <div class="nav-item" id="navPayment" onclick="switchScreen('screenPayment')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span>Payment</span>
+        </div>
+        <div class="nav-item" id="navNotif" onclick="switchScreen('screenNotif')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span>Alerts</span>
+        </div>
+        <div class="nav-item" id="navProfile" onclick="switchScreen('screenProfile')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profile</span>
+        </div>
+      </div>
+
+    </div><!-- end phone-screen -->
+  </div><!-- end phone-frame -->
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/resident.js"></script>
+</body>
+</html>

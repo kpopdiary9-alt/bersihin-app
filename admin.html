@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BersihIn Admin Dashboard — Real-time analytics, financial tracking, and operational monitoring for waste pickup management.">
+  <title>BersihIn — Admin Dashboard</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body class="admin-page">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+      <a href="index.html" class="sidebar-logo" id="sidebarLogoLink">
+        <div class="logo-mark">♻️</div>
+        Bersih<span class="logo-highlight">In</span>
+        <span class="sidebar-badge">Admin</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-label">Main</div>
+      <div class="sidebar-item active" onclick="switchPanel('overview')" id="navOverview">
+        <span class="si-icon">📊</span> Overview
+      </div>
+      <div class="sidebar-item" onclick="switchPanel('routes')" id="navRoutes">
+        <span class="si-icon">🗺️</span> Routes & Map
+      </div>
+      <div class="sidebar-item" onclick="switchPanel('payments')" id="navPayments">
+        <span class="si-icon">💳</span> Payments
+      </div>
+      <div class="sidebar-item" onclick="switchPanel('monitoring')" id="navMonitoring">
+        <span class="si-icon">📡</span> Monitoring
+        <span class="si-badge">3</span>
+      </div>
+
+      <div class="sidebar-nav-label">Management</div>
+      <div class="sidebar-item" onclick="switchPanel('residents')" id="navResidents">
+        <span class="si-icon">🏠</span> Residents
+      </div>
+      <div class="sidebar-item" id="navCollectors">
+        <span class="si-icon">🚛</span> Collectors
+      </div>
+      <div class="sidebar-item" id="navAreas">
+        <span class="si-icon">📍</span> Service Areas
+      </div>
+
+      <div class="sidebar-nav-label">System</div>
+      <div class="sidebar-item" id="navSettings">
+        <span class="si-icon">⚙️</span> Settings
+      </div>
+      <div class="sidebar-item" id="navReports">
+        <span class="si-icon">📋</span> Reports
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="su-avatar">RT</div>
+        <div class="su-info">
+          <div class="su-name">Pak RT Slamet</div>
+          <div class="su-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Top Bar -->
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <div>
+          <h1 id="pageTitle">Overview</h1>
+          <div class="page-subtitle" id="pageSubtitle">Real-time waste pickup analytics</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" id="searchBar">
+          <span>🔍</span>
+          <input type="text" placeholder="Search residents, collectors..." id="searchInput">
+        </div>
+        <div class="topbar-icon" id="notifIcon">
+          🔔
+          <div class="notif-badge"></div>
+        </div>
+        <div class="topbar-icon" id="settingsIcon">⚙️</div>
+      </div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+
+      <!-- ===== OVERVIEW PANEL ===== -->
+      <div class="admin-panel active" id="panelOverview">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <div class="kpi-icon green">🏠</div>
+              <div class="kpi-trend up">↑ 12%</div>
+            </div>
+            <div class="kpi-value" id="kpiHouses">1,248</div>
+            <div class="kpi-label">Total Households</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <div class="kpi-icon blue">📊</div>
+              <div class="kpi-trend up">↑ 3%</div>
+            </div>
+            <div class="kpi-value" id="kpiRate">98.2%</div>
+            <div class="kpi-label">Collection Rate</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-header">
+              <div class="kpi-icon amber">💰</div>
+              <div class="kpi-trend up">↑ 8%</div>
+            </div>
+            <div class="kpi-value" id="kpiRevenue">Rp 62.4M</div>
+            <div class="kpi-label">Monthly Revenue</div>
+          </div>
+          <div class="kpi-card purple">
+            <div class="kpi-header">
+              <div class="kpi-icon purple">🚛</div>
+              <div class="kpi-trend up">↑ 2</div>
+            </div>
+            <div class="kpi-value" id="kpiCollectors">24</div>
+            <div class="kpi-label">Active Collectors</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Collection Trends</h3>
+            <div class="chart-subtitle">Daily pickups over the last 30 days</div>
+            <canvas id="trendChart" height="260"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Waste Composition</h3>
+            <div class="chart-subtitle">Breakdown by waste type</div>
+            <canvas id="compositionChart" height="260"></canvas>
+          </div>
+        </div>
+
+        <!-- Activity + Recent Table -->
+        <div class="grid-2col">
+          <div class="activity-card">
+            <h3>Recent Activity</h3>
+            <div class="activity-item">
+              <div class="activity-icon green">✅</div>
+              <div class="activity-text"><strong>Muhammad Rizki</strong> completed 18/30 pickups on Route C</div>
+              <div class="activity-time">2m</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon blue">💳</div>
+              <div class="activity-text"><strong>Auto-Pay</strong> processed 156 payments totaling Rp 7.8M</div>
+              <div class="activity-time">1h</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon amber">⚠️</div>
+              <div class="activity-text"><strong>Route A</strong> delayed by 15 minutes due to road construction</div>
+              <div class="activity-time">2h</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon green">🆕</div>
+              <div class="activity-text"><strong>12 new households</strong> registered in Blok D this month</div>
+              <div class="activity-time">5h</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon blue">📊</div>
+              <div class="activity-text"><strong>Monthly report</strong> for March 2026 generated</div>
+              <div class="activity-time">1d</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon green">🌟</div>
+              <div class="activity-text"><strong>Collection rate</strong> reached 98.2% — highest this quarter</div>
+              <div class="activity-time">2d</div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3>Payment Status</h3>
+            <div class="chart-subtitle">Current month breakdown</div>
+            <canvas id="paymentStatusChart" height="200"></canvas>
+            <div style="margin-top: 16px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--neutral-100); font-size: 13px;">
+                <span style="color: var(--neutral-500);">Paid</span>
+                <span style="font-weight: 700; color: var(--primary-600);">1,156 (92.6%)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--neutral-100); font-size: 13px;">
+                <span style="color: var(--neutral-500);">Pending</span>
+                <span style="font-weight: 700; color: #d97706;">68 (5.4%)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px;">
+                <span style="color: var(--neutral-500);">Overdue</span>
+                <span style="font-weight: 700; color: #dc2626;">24 (1.9%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ROUTES PANEL ===== -->
+      <div class="admin-panel" id="panelRoutes">
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <div class="kpi-icon green">🗺️</div>
+            </div>
+            <div class="kpi-value">8</div>
+            <div class="kpi-label">Active Routes</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <div class="kpi-icon blue">🚛</div>
+            </div>
+            <div class="kpi-value">24</div>
+            <div class="kpi-label">Deployed Collectors</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-header">
+              <div class="kpi-icon amber">📍</div>
+            </div>
+            <div class="kpi-value">32.6 km</div>
+            <div class="kpi-label">Total Route Distance</div>
+          </div>
+        </div>
+
+        <div class="admin-map-container">
+          <div id="adminMap"></div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Route Assignments</h3>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-secondary" id="optimizeBtn">⚡ Optimize Routes</button>
+            </div>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th>Collector</th>
+                <th>Stops</th>
+                <th>Distance</th>
+                <th>Status</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Route A</strong> — Blok A</td>
+                <td>
+                  <div class="table-user">
+                    <div class="table-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">BS</div>
+                    <div><div class="table-user-name">Budi S.</div><div class="table-user-sub">Motor RT-01</div></div>
+                  </div>
+                </td>
+                <td>30/30</td>
+                <td>4.2 km</td>
+                <td><span class="badge badge-success">Completed</span></td>
+                <td>
+                  <div class="progress-bar" style="width: 120px;"><div class="progress-bar-fill" style="width: 100%;"></div></div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Route B</strong> — Blok B</td>
+                <td>
+                  <div class="table-user">
+                    <div class="table-avatar" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">DL</div>
+                    <div><div class="table-user-name">Dedi L.</div><div class="table-user-sub">Motor RT-02</div></div>
+                  </div>
+                </td>
+                <td>22/28</td>
+                <td>3.8 km</td>
+                <td><span class="badge badge-warning">In Progress</span></td>
+                <td>
+                  <div class="progress-bar" style="width: 120px;"><div class="progress-bar-fill" style="width: 78%;"></div></div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Route C</strong> — Blok C</td>
+                <td>
+                  <div class="table-user">
+                    <div class="table-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">MR</div>
+                    <div><div class="table-user-name">Muhammad R.</div><div class="table-user-sub">Motor RT-03</div></div>
+                  </div>
+                </td>
+                <td>18/30</td>
+                <td>4.5 km</td>
+                <td><span class="badge badge-warning">In Progress</span></td>
+                <td>
+                  <div class="progress-bar" style="width: 120px;"><div class="progress-bar-fill" style="width: 60%;"></div></div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Route D</strong> — Blok D</td>
+                <td>
+                  <div class="table-user">
+                    <div class="table-avatar" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">EK</div>
+                    <div><div class="table-user-name">Eko K.</div><div class="table-user-sub">Motor RT-04</div></div>
+                  </div>
+                </td>
+                <td>0/25</td>
+                <td>3.4 km</td>
+                <td><span class="badge badge-info">Scheduled</span></td>
+                <td>
+                  <div class="progress-bar" style="width: 120px;"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== PAYMENTS PANEL ===== -->
+      <div class="admin-panel" id="panelPayments">
+        <div class="kpi-grid">
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <div class="kpi-icon green">💰</div>
+              <div class="kpi-trend up">↑ 8%</div>
+            </div>
+            <div class="kpi-value">Rp 62.4M</div>
+            <div class="kpi-label">Revenue This Month</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <div class="kpi-icon blue">✅</div>
+            </div>
+            <div class="kpi-value">92.6%</div>
+            <div class="kpi-label">Payment Rate</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-header">
+              <div class="kpi-icon amber">⏱️</div>
+            </div>
+            <div class="kpi-value">68</div>
+            <div class="kpi-label">Pending Payments</div>
+          </div>
+          <div class="kpi-card purple">
+            <div class="kpi-header">
+              <div class="kpi-icon purple">🔄</div>
+            </div>
+            <div class="kpi-value">89%</div>
+            <div class="kpi-label">Auto-Pay Adoption</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Revenue Trend</h3>
+            <div class="chart-subtitle">Monthly revenue over the last 6 months</div>
+            <canvas id="revenueChart" height="260"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Payment Methods</h3>
+            <div class="chart-subtitle">Distribution by payment provider</div>
+            <canvas id="methodChart" height="260"></canvas>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Recent Payments</h3>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-secondary" id="exportPayBtn">📥 Export CSV</button>
+            </div>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Resident</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#22c55e,#16a34a);">TF</div><div><div class="table-user-name">Teuku Muhammad Farhan</div><div class="table-user-sub">Blok C, No. 14</div></div></div></td>
+                <td><strong>Rp 50.000</strong></td>
+                <td>GoPay</td>
+                <td>Apr 1, 2026</td>
+                <td><span class="badge badge-success">Paid</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#3b82f6,#2563eb);">BS</div><div><div class="table-user-name">Budi Santoso</div><div class="table-user-sub">Blok A, No. 3</div></div></div></td>
+                <td><strong>Rp 50.000</strong></td>
+                <td>OVO</td>
+                <td>Apr 1, 2026</td>
+                <td><span class="badge badge-success">Paid</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#f59e0b,#d97706);">DL</div><div><div class="table-user-name">Dewi Lestari</div><div class="table-user-sub">Blok A, No. 5</div></div></div></td>
+                <td><strong>Rp 50.000</strong></td>
+                <td>Bank BCA</td>
+                <td>Apr 2, 2026</td>
+                <td><span class="badge badge-success">Paid</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#a855f7,#7c3aed);">HG</div><div><div class="table-user-name">Hendra G.</div><div class="table-user-sub">Blok C, No. 16</div></div></div></td>
+                <td><strong>Rp 50.000</strong></td>
+                <td>GoPay</td>
+                <td>—</td>
+                <td><span class="badge badge-warning">Pending</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#ef4444,#dc2626);">MS</div><div><div class="table-user-name">Maya Sari</div><div class="table-user-sub">Blok D, No. 8</div></div></div></td>
+                <td><strong>Rp 50.000</strong></td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="badge badge-danger">Overdue</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== MONITORING PANEL ===== -->
+      <div class="admin-panel" id="panelMonitoring">
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <div class="kpi-icon green">🟢</div>
+            </div>
+            <div class="kpi-value" id="monLive">3</div>
+            <div class="kpi-label">Collectors Active Now</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <div class="kpi-icon blue">🏠</div>
+            </div>
+            <div class="kpi-value" id="monPickedUp">847</div>
+            <div class="kpi-label">Houses Picked Up Today</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-header">
+              <div class="kpi-icon amber">⚠️</div>
+              <div class="kpi-trend down">3 issues</div>
+            </div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-label">Active Alerts</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>Live Collector Status</h3>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Collector</th>
+                <th>Route</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#22c55e,#16a34a);">BS</div><div><div class="table-user-name">Budi Santoso</div></div></div></td>
+                <td>Route A</td>
+                <td><span class="badge badge-success"><span class="status-dot online pulse" style="margin-right:4px;"></span> Active</span></td>
+                <td><div class="progress-bar" style="width:100px;"><div class="progress-bar-fill" style="width:100%;"></div></div> <span style="font-size:11px;color:var(--neutral-400);margin-left:6px;">30/30</span></td>
+                <td>Just now</td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#3b82f6,#2563eb);">DL</div><div><div class="table-user-name">Dedi Lesmana</div></div></div></td>
+                <td>Route B</td>
+                <td><span class="badge badge-success"><span class="status-dot online pulse" style="margin-right:4px;"></span> Active</span></td>
+                <td><div class="progress-bar" style="width:100px;"><div class="progress-bar-fill" style="width:78%;"></div></div> <span style="font-size:11px;color:var(--neutral-400);margin-left:6px;">22/28</span></td>
+                <td>1m ago</td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#f59e0b,#d97706);">MR</div><div><div class="table-user-name">Muhammad Rizki</div></div></div></td>
+                <td>Route C</td>
+                <td><span class="badge badge-success"><span class="status-dot online pulse" style="margin-right:4px;"></span> Active</span></td>
+                <td><div class="progress-bar" style="width:100px;"><div class="progress-bar-fill" style="width:60%;"></div></div> <span style="font-size:11px;color:var(--neutral-400);margin-left:6px;">18/30</span></td>
+                <td>2m ago</td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#a855f7,#7c3aed);">EK</div><div><div class="table-user-name">Eko Kurniawan</div></div></div></td>
+                <td>Route D</td>
+                <td><span class="badge badge-info">Scheduled 09:00</span></td>
+                <td><div class="progress-bar" style="width:100px;"><div class="progress-bar-fill" style="width:0%;"></div></div> <span style="font-size:11px;color:var(--neutral-400);margin-left:6px;">0/25</span></td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>⚠️ Active Alerts</h3>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Route</th>
+                <th>Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-warning">Delay</span></td>
+                <td>Route delayed due to road construction</td>
+                <td>Route A</td>
+                <td>08:15 AM</td>
+                <td><button class="btn btn-sm btn-ghost" id="alert1Btn">Acknowledge</button></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-danger">Missed</span></td>
+                <td>House #D-08 not accessible (blocked gate)</td>
+                <td>Route D</td>
+                <td>Yesterday</td>
+                <td><button class="btn btn-sm btn-ghost" id="alert2Btn">Reschedule</button></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-warning">Payment</span></td>
+                <td>24 households with overdue payments</td>
+                <td>All</td>
+                <td>Apr 5</td>
+                <td><button class="btn btn-sm btn-ghost" id="alert3Btn">Send Reminder</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== RESIDENTS PANEL ===== -->
+      <div class="admin-panel" id="panelResidents">
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <div class="kpi-icon green">🏠</div>
+              <div class="kpi-trend up">↑ 12</div>
+            </div>
+            <div class="kpi-value">1,248</div>
+            <div class="kpi-label">Registered Households</div>
+          </div>
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <div class="kpi-icon blue">✅</div>
+            </div>
+            <div class="kpi-value">96.3%</div>
+            <div class="kpi-label">Compliance Rate</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-header">
+              <div class="kpi-icon amber">⭐</div>
+            </div>
+            <div class="kpi-value">4.8</div>
+            <div class="kpi-label">Avg. Satisfaction</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <h3>All Residents</h3>
+            <div class="table-actions">
+              <button class="btn btn-sm btn-secondary" id="addResidentBtn">+ Add Resident</button>
+              <button class="btn btn-sm btn-ghost" id="filterResidentBtn">🔽 Filter</button>
+            </div>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Resident</th>
+                <th>Address</th>
+                <th>Payment</th>
+                <th>Pickups</th>
+                <th>Auto-Pay</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#22c55e,#16a34a);">TF</div><div><div class="table-user-name">Teuku Muhammad Farhan</div><div class="table-user-sub">Since Jan 2025</div></div></div></td>
+                <td>Blok C, No. 14</td>
+                <td><span class="badge badge-success">Paid</span></td>
+                <td>24/24</td>
+                <td><span style="color: var(--primary-600); font-weight: 600;">✓ Yes</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#3b82f6,#2563eb);">BS</div><div><div class="table-user-name">Budi Santoso</div><div class="table-user-sub">Since Mar 2024</div></div></div></td>
+                <td>Blok A, No. 3</td>
+                <td><span class="badge badge-success">Paid</span></td>
+                <td>24/24</td>
+                <td><span style="color: var(--primary-600); font-weight: 600;">✓ Yes</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#f59e0b,#d97706);">DL</div><div><div class="table-user-name">Dewi Lestari</div><div class="table-user-sub">Since Jun 2024</div></div></div></td>
+                <td>Blok A, No. 5</td>
+                <td><span class="badge badge-success">Paid</span></td>
+                <td>23/24</td>
+                <td><span style="color: var(--primary-600); font-weight: 600;">✓ Yes</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#ef4444,#dc2626);">HG</div><div><div class="table-user-name">Hendra Gunawan</div><div class="table-user-sub">Since Sep 2024</div></div></div></td>
+                <td>Blok C, No. 16</td>
+                <td><span class="badge badge-warning">Pending</span></td>
+                <td>20/24</td>
+                <td><span style="color: var(--neutral-400);">✗ No</span></td>
+                <td><span class="badge badge-warning">Warning</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#a855f7,#7c3aed);">MS</div><div><div class="table-user-name">Maya Sari</div><div class="table-user-sub">Since Jan 2025</div></div></div></td>
+                <td>Blok D, No. 8</td>
+                <td><span class="badge badge-danger">Overdue</span></td>
+                <td>18/24</td>
+                <td><span style="color: var(--neutral-400);">✗ No</span></td>
+                <td><span class="badge badge-danger">At Risk</span></td>
+              </tr>
+              <tr>
+                <td><div class="table-user"><div class="table-avatar" style="background: linear-gradient(135deg,#22c55e,#16a34a);">RW</div><div><div class="table-user-name">Rina Wijaya</div><div class="table-user-sub">Since Feb 2024</div></div></div></td>
+                <td>Blok C, No. 12</td>
+                <td><span class="badge badge-success">Paid</span></td>
+                <td>24/24</td>
+                <td><span style="color: var(--primary-600); font-weight: 600;">✓ Yes</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end dashboard-content -->
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

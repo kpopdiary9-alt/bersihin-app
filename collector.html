@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="BersihIn Collector App — Optimized route navigation, QR verification, and performance tracking for waste collectors.">
+  <title>BersihIn — Collector App</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/collector.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>">
+</head>
+<body class="collector-page">
+
+  <a href="index.html" class="back-to-home" id="backHomeLink">← Back to Home</a>
+
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <!-- Status Bar -->
+      <div class="phone-status-bar" id="statusBar" style="color: white;">
+        <span class="time" id="statusTime">9:41</span>
+        <div class="icons">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </div>
+      </div>
+
+      <!-- App Content -->
+      <div class="app-content">
+
+        <!-- ===== ROUTE LIST SCREEN ===== -->
+        <div class="screen active" id="screenRoute">
+          <div class="app-scroll">
+            <div class="collector-header">
+              <div class="header-row">
+                <div>
+                  <div class="greeting">Today's Route</div>
+                  <div class="greeting-name">Muhammad Rizki 💪</div>
+                </div>
+                <div class="header-actions">
+                  <button class="header-icon-btn" onclick="switchScreen('screenSummary')" id="summaryBtn">📊</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Route Summary Bar -->
+            <div class="route-summary-bar animate-fade-in-up">
+              <div class="route-stat">
+                <div class="rs-value green" id="completedCount">18</div>
+                <div class="rs-label">Completed</div>
+              </div>
+              <div class="route-stat">
+                <div class="rs-value">30</div>
+                <div class="rs-label">Total Stops</div>
+              </div>
+              <div class="route-stat">
+                <div class="rs-value">4.2 km</div>
+                <div class="rs-label">Distance</div>
+              </div>
+            </div>
+
+            <!-- Route Progress -->
+            <div class="route-progress-card">
+              <div class="rp-header">
+                <h4>Route Progress</h4>
+                <span class="rp-percent" id="routePercent">60%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-bar-fill" id="routeProgressFill" style="width: 60%;"></div>
+              </div>
+            </div>
+
+            <!-- Route Stops -->
+            <div class="route-list">
+              <h3>Stops</h3>
+
+              <!-- Completed stops -->
+              <div class="route-stop completed" id="stop1">
+                <div class="stop-number done">✓</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Mawar No. 1</div>
+                  <div class="stop-resident">Budi Santoso • 07:45</div>
+                </div>
+                <div class="stop-badge done">Done</div>
+              </div>
+
+              <div class="route-stop completed" id="stop2">
+                <div class="stop-number done">✓</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Mawar No. 3</div>
+                  <div class="stop-resident">Dewi Lestari • 07:52</div>
+                </div>
+                <div class="stop-badge done">Done</div>
+              </div>
+
+              <div class="route-stop completed" id="stop3">
+                <div class="stop-number done">✓</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Mawar No. 5</div>
+                  <div class="stop-resident">Eko Prasetyo • 07:58</div>
+                </div>
+                <div class="stop-badge done">Done</div>
+              </div>
+
+              <!-- Current stop -->
+              <div class="route-stop current" id="stop4">
+                <div class="stop-number active">4</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Anggrek No. 12</div>
+                  <div class="stop-resident">Rina Wijaya</div>
+                </div>
+                <div class="stop-badge now">Current</div>
+              </div>
+
+              <!-- Upcoming stops -->
+              <div class="route-stop" id="stop5">
+                <div class="stop-number pending">5</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Anggrek No. 14</div>
+                  <div class="stop-resident">Teuku Muhammad Farhan</div>
+                </div>
+                <div class="stop-badge next">Next</div>
+              </div>
+
+              <div class="route-stop" id="stop6">
+                <div class="stop-number pending">6</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Anggrek No. 16</div>
+                  <div class="stop-resident">Hendra Gunawan</div>
+                </div>
+              </div>
+
+              <div class="route-stop" id="stop7">
+                <div class="stop-number pending">7</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Anggrek No. 18</div>
+                  <div class="stop-resident">Maya Sari</div>
+                </div>
+              </div>
+
+              <div class="route-stop" id="stop8">
+                <div class="stop-number pending">8</div>
+                <div class="stop-info">
+                  <div class="stop-address">Jl. Anggrek No. 20</div>
+                  <div class="stop-resident">Doni Setiawan</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Start Route Button -->
+            <button class="start-route-btn" onclick="switchScreen('screenMap')" id="startRouteBtn">
+              🗺️ Open Navigation
+            </button>
+
+            <div style="height: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== MAP NAVIGATION SCREEN ===== -->
+        <div class="screen collector-map-screen" id="screenMap">
+          <div class="app-scroll" style="padding-top: 0; padding-bottom: 90px;">
+            <div class="map-full">
+              <div id="collectorMap" style="width:100%; height:100%;"></div>
+              <div class="map-overlay-top">
+                <div class="current-direction">Heading to stop #4</div>
+                <div class="current-address">Jl. Anggrek No. 12</div>
+                <div class="direction-meters">📍 120m ahead — Turn right</div>
+              </div>
+            </div>
+
+            <div class="map-bottom-card">
+              <div class="next-stop-label">Next Stop</div>
+              <div class="next-stop-address">Jl. Anggrek No. 14 — Teuku Muhammad Farhan</div>
+              <div class="next-stop-meta">
+                <div class="meta-item">📍 200m</div>
+                <div class="meta-item">⏱️ ~2 min</div>
+                <div class="meta-item">🗑️ General Waste</div>
+              </div>
+              <div class="map-nav-actions">
+                <button class="btn-navigate" id="navigateBtn">🧭 Navigate</button>
+                <button class="btn-scan" onclick="switchScreen('screenQR')" id="scanFromMapBtn">📷</button>
+              </div>
+            </div>
+
+            <div style="height: 20px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== QR SCANNER SCREEN ===== -->
+        <div class="screen qr-scanner-screen" id="screenQR">
+          <div class="app-scroll" style="padding-top: 0; background: var(--neutral-900);">
+            <div class="qr-header">
+              <h2>Scan QR Code</h2>
+              <p>Point camera at the household QR code</p>
+            </div>
+
+            <div class="qr-viewport" id="qrViewport">
+              <div class="qr-placeholder">📷</div>
+              <div class="scan-frame"></div>
+              <div class="scan-corners"></div>
+              <div class="scan-corners-bottom"></div>
+              <div class="scan-line"></div>
+            </div>
+
+            <div class="qr-actions">
+              <button class="btn-scan-action" onclick="simulateScan()" id="scanBtn">Tap to Scan</button>
+            </div>
+
+            <div class="qr-instruction">
+              Position the QR code within the frame. The scan will happen automatically.
+            </div>
+
+            <!-- Success Modal -->
+            <div class="qr-success-modal" id="qrSuccessModal">
+              <div class="qr-success-content">
+                <div class="qr-success-icon">✅</div>
+                <h3>Pickup Verified!</h3>
+                <div class="verified-address">Jl. Anggrek No. 12</div>
+                <div class="verified-name">Rina Wijaya — Household #A-12</div>
+                <div class="verified-time">⏰ 08:24 AM — Thu, Apr 10, 2026</div>
+                <button class="btn-continue" onclick="closeQRModal()" id="continueBtn">Continue to Next →</button>
+              </div>
+            </div>
+
+            <div style="height: 30px;"></div>
+          </div>
+        </div>
+
+        <!-- ===== SUMMARY SCREEN ===== -->
+        <div class="screen summary-screen" id="screenSummary">
+          <div class="app-scroll">
+            <div class="summary-header">
+              <div class="summary-date">Thursday, April 10, 2026</div>
+              <h2>Daily Performance</h2>
+            </div>
+
+            <div class="summary-stats-grid">
+              <div class="summary-stat highlight">
+                <div class="ss-icon">🏠</div>
+                <div class="ss-value">18</div>
+                <div class="ss-label">Houses Done</div>
+              </div>
+              <div class="summary-stat">
+                <div class="ss-icon">📍</div>
+                <div class="ss-value">3.8 km</div>
+                <div class="ss-label">Distance</div>
+              </div>
+              <div class="summary-stat">
+                <div class="ss-icon">⏱️</div>
+                <div class="ss-value">2h 15m</div>
+                <div class="ss-label">Time Elapsed</div>
+              </div>
+              <div class="summary-stat">
+                <div class="ss-icon">⚡</div>
+                <div class="ss-value">8/hr</div>
+                <div class="ss-label">Avg Speed</div>
+              </div>
+            </div>
+
+            <!-- Earnings -->
+            <div class="earnings-card">
+              <div class="earn-label">Today's Earnings</div>
+              <div class="earn-value">Rp 180.000</div>
+              <div class="earn-detail">18 pickups × Rp 10.000/pickup</div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="performance-chart-card">
+              <h4>This Week's Performance</h4>
+              <canvas id="perfChart"></canvas>
+            </div>
+
+            <!-- Rating -->
+            <div class="rating-card">
+              <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+              <div class="rating-value">4.9 / 5.0</div>
+              <div class="rating-label">Average Resident Rating</div>
+            </div>
+
+            <div style="height: 30px;"></div>
+          </div>
+        </div>
+
+      </div><!-- end app-content -->
+
+      <!-- Bottom Navigation -->
+      <div class="bottom-nav">
+        <div class="nav-item active" id="navRoute" onclick="switchScreen('screenRoute')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Routes</span>
+        </div>
+        <div class="nav-item" id="navMap" onclick="switchScreen('screenMap')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <span>Map</span>
+        </div>
+        <div class="nav-item" id="navQR" onclick="switchScreen('screenQR')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <span>Scan</span>
+        </div>
+        <div class="nav-item" id="navSummary" onclick="switchScreen('screenSummary')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
+          <span>Summary</span>
+        </div>
+      </div>
+
+    </div><!-- end phone-screen -->
+  </div><!-- end phone-frame -->
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="js/collector.js"></script>
+</body>
+</html>
