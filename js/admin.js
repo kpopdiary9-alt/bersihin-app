@@ -59,15 +59,20 @@ function initTrendChart() {
   const ctx = document.getElementById('trendChart');
   if (!ctx) return;
 
-  // Generate 30 days of data
+  // Generate 30 days of labels
   const labels = [];
-  const data = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     labels.push(d.getDate().toString());
-    data.push(Math.floor(Math.random() * 40) + 170);
   }
+
+  // Realistic, consistent pickup data (steady upward trend with minor daily variance)
+  const data = [
+    172, 178, 175, 180, 183, 179, 185, 188, 182, 190,
+    187, 192, 189, 195, 191, 196, 193, 198, 194, 200,
+    197, 202, 199, 205, 201, 203, 206, 204, 208, 210
+  ];
 
   trendChartInstance = new Chart(ctx, {
     type: 'line',
@@ -79,9 +84,9 @@ function initTrendChart() {
         borderColor: '#22c55e',
         backgroundColor: (context) => {
           const chart = context.chart;
-          const { ctx, chartArea } = chart;
+          const { ctx: c, chartArea } = chart;
           if (!chartArea) return 'rgba(34,197,94,0.1)';
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
           gradient.addColorStop(0, 'rgba(34, 197, 94, 0.2)');
           gradient.addColorStop(1, 'rgba(34, 197, 94, 0.01)');
           return gradient;
@@ -98,7 +103,8 @@ function initTrendChart() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 2.5,
       interaction: { intersect: false, mode: 'index' },
       plugins: {
         legend: { display: false },
@@ -125,7 +131,8 @@ function initTrendChart() {
           grid: { color: 'rgba(0,0,0,0.04)', drawTicks: false },
           ticks: { font: { size: 10 }, color: '#a3a3a3', padding: 8 },
           border: { display: false },
-          min: 100,
+          min: 150,
+          max: 220,
         },
       },
       animation: { duration: 1200, easing: 'easeOutQuart' },
