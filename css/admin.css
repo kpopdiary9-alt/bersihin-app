@@ -424,6 +424,7 @@
 
 .chart-card canvas {
   width: 100% !important;
+  max-height: 280px;
 }
 
 /* --- Activity Feed --- */
